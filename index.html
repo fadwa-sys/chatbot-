@@ -3,74 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeacherVirtuel - Trinity AI</title>
+    <title>Professeur IA - Trinity</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        header { background: #2563eb; color: white; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 80%; padding: 12px; border-radius: 15px; line-height: 1.4; }
-        .user { align-self: flex-end; background: #2563eb; color: white; }
-        .bot { align-self: flex-start; background: white; border: 1px solid #ddd; color: #333; }
-        .input-area { background: white; padding: 20px; display: flex; gap: 10px; border-top: 1px solid #ddd; }
-        input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 25px; outline: none; }
-        button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
-        button:disabled { background: #ccc; }
+        :root {
+            --primary-color: #2c3e50; /* Couleur "Tableau d'école" */
+            --accent-color: #27ae60;
+            --bg-color: #ecf0f1;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+
+        header {
+            background: var(--primary-color);
+            color: white;
+            width: 100%;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #chat-container { 
+            width: 90%; 
+            max-width: 600px; 
+            background: white; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            margin-top: 20px;
+            height: 70vh;
+        }
+
+        #chat-window { 
+            flex: 1;
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: #fafafa;
+        }
+
+        .message { 
+            padding: 12px 16px; 
+            border-radius: 15px; 
+            max-width: 85%; 
+            line-height: 1.5;
+            font-size: 15px;
+        }
+
+        .user-message { 
+            background: var(--primary-color); 
+            color: white; 
+            align-self: flex-end; 
+            border-bottom-right-radius: 2px;
+        }
+
+        .bot-message { 
+            background: #e8f4fd; 
+            color: #2c3e50; 
+            align-self: flex-start; 
+            border-bottom-left-radius: 2px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        #input-area { 
+            display: flex; 
+            padding: 15px; 
+            background: white;
+            border-top: 1px solid #eee;
+        }
+
+        input { 
+            flex: 1; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 25px; 
+            outline: none; 
+            padding-left: 20px;
+        }
+
+        button { 
+            background: var(--accent-color); 
+            color: white; 
+            border: none; 
+            padding: 0 20px; 
+            margin-left: 10px; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        button:hover { transform: scale(1.05); background: #219150; }
+        
+        .typing { font-style: italic; color: #7f8c8d; font-size: 13px; display: none; margin-left: 20px;}
     </style>
 </head>
 <body>
 
 <header>
-    <h1>🎓 TeacherVirtuel</h1>
-    <small>Modèle: Trinity-Large-Preview</small>
+    <h1>🎓 Mon Professeur IA</h1>
+    <p>Posez-moi n'importe quelle question !</p>
 </header>
 
-<div id="chat-box">
-    <div class="msg bot">Bonjour ! Je suis votre TeacherVirtuel. Posez-moi votre question.</div>
-</div>
-
-<div class="input-area">
-    <input type="text" id="userInput" placeholder="Écrivez ici..." onkeypress="if(event.key==='Enter') sendMessage()">
-    <button id="sendBtn" onclick="sendMessage()">ENVOYER</button>
+<div id="chat-container">
+    <div id="chat-window">
+        <div class="message bot-message">Bonjour ! Je suis votre professeur particulier. Quelle notion souhaitez-vous explorer aujourd'hui ?</div>
+    </div>
+    <div id="typing-indicator" class="typing">Le professeur réfléchit...</div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Posez votre question ici...">
+        <button onclick="sendMessage()">Poser la question</button>
+    </div>
 </div>
 
 <script>
-    // Utilisation de votre clé API fournie
-    const KEY = "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";
-    const MOD = "arcee-ai/trinity-large-preview:free";
+    // Configuration
+    const API_KEY = "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";
+    const MODEL = "arcee-ai/trinity-large-preview:free";
 
     async function sendMessage() {
-        const input = document.getElementById('userInput');
-        const btn = document.getElementById('sendBtn');
-        const chatBox = document.getElementById('chat-box');
-        const text = input.value.trim();
+        const inputField = document.getElementById('user-input');
+        const chatWindow = document.getElementById('chat-window');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const message = inputField.value.trim();
 
-        if (!text) return;
+        if (!message) return;
 
-        // 1. Afficher le message utilisateur immédiatement
-        const userDiv = document.createElement('div');
-        userDiv.className = 'msg user';
-        userDiv.innerText = text;
-        chatBox.appendChild(userDiv);
-        
-        input.value = "";
-        btn.disabled = true;
-        chatBox.scrollTop = chatBox.scrollHeight;
+        // 1. Afficher le message de l'élève
+        appendMessage(message, 'user-message');
+        inputField.value = '';
+        typingIndicator.style.display = 'block';
 
         try {
-            // 2. Requête vers OpenRouter
+            // 2. Appel à l'API Trinity
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${KEY}`,
+                    "Authorization": `Bearer ${API_KEY}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    "model": MOD,
+                    "model": MODEL,
                     "messages": [
-                        {"role": "system", "content": "Tu es un professeur virtuel pédagogue."},
-                        {"role": "user", "content": text}
+                        { 
+                            "role": "system", 
+                            "content": "Tu es un professeur expert et passionné. Tu expliques les choses clairement, avec pédagogie. Si la question est complexe, décompose-la en étapes. Utilise un ton encourageant et réponds toujours en français." 
+                        },
+                        { "role": "user", "content": message }
                     ]
                 })
             });
 
-            const data = await
+            const data = await response.json();
+            const botReply = data.choices[0].message.content;
+
+            // 3. Afficher la réponse du Professeur
+            typingIndicator.style.display = 'none';
+            appendMessage(botReply, 'bot-message');
+
+        } catch (error) {
+            console.error("Erreur:", error);
+            typingIndicator.style.display = 'none';
+            appendMessage("Désolé, j'ai eu un petit problème de connexion à mon cerveau électronique. Peux-tu reformuler ?", 'bot-message');
+        }
+    }
+
+    function appendMessage(text, className) {
+        const chatWindow = document.getElementById('chat-window');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${className}`;
+        msgDiv.innerText = text;
+        chatWindow.appendChild(msgDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    // Gérer la touche Entrée
+    document.getElementById('user-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+</script>
+
+</body>
+</html>
