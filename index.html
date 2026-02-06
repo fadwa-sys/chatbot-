@@ -1,63 +1,37 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qwen3-Coder Agent Terminal</title>
+    <title>Trinity AI Interface</title>
     <style>
         :root {
-            --bg: #0d1117;
-            --sidebar: #161b22;
-            --accent: #238636; /* Vert style GitHub/Coding */
-            --text: #c9d1d9;
-            --border: #30363d;
-            --user-msg: #21262d;
+            --bg: #0b0f19;
+            --card: #161b2c;
+            --accent: #3b82f6;
+            --text: #f1f5f9;
+            --border: #2d3748;
         }
 
         body {
-            font-family: 'Fira Code', 'Consolas', monospace;
+            font-family: 'Inter', system-ui, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
             display: flex;
+            flex-direction: column;
             height: 100vh;
         }
 
-        /* Panneau Latéral */
-        .sidebar {
-            width: 280px;
-            background: var(--sidebar);
-            border-right: 1px solid var(--border);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            font-size: 13px;
+        header {
+            background: var(--card);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
         }
 
-        .model-name {
-            color: #58a6ff;
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-        }
-
-        .specs {
-            color: #8b949e;
-            line-height: 1.4;
-            border-left: 2px solid var(--accent);
-            padding-left: 10px;
-        }
-
-        /* Zone de Chat */
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        #messages {
+        #chat-window {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
@@ -66,155 +40,73 @@
             gap: 15px;
         }
 
-        .msg {
+        .message {
             max-width: 85%;
             padding: 12px 16px;
-            border-radius: 6px;
+            border-radius: 10px;
+            font-size: 0.95rem;
             line-height: 1.5;
+        }
+
+        .user {
+            align-self: flex-end;
+            background: var(--accent);
+            color: white;
+        }
+
+        .bot {
+            align-self: flex-start;
+            background: var(--card);
+            border: 1px solid var(--border);
             white-space: pre-wrap;
         }
 
-        .user-msg {
-            align-self: flex-end;
-            background: var(--user-msg);
-            border: 1px solid var(--border);
-        }
-
-        .bot-msg {
-            align-self: flex-start;
-            background: #161b22;
-            border: 1px solid var(--accent);
-        }
-
-        /* Zone d'entrée */
         .input-container {
+            background: var(--card);
             padding: 20px;
-            background: var(--bg);
             border-top: 1px solid var(--border);
-        }
-
-        .input-wrapper {
-            max-width: 900px;
-            margin: 0 auto;
             display: flex;
             gap: 10px;
         }
 
         input {
             flex: 1;
-            background: #010409;
+            background: #0b0f19;
             border: 1px solid var(--border);
-            color: #aff5b4; /* Vert code */
-            padding: 14px;
-            border-radius: 6px;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
             outline: none;
         }
+
+        input:focus { border-color: var(--accent); }
 
         button {
             background: var(--accent);
             color: white;
             border: none;
             padding: 0 25px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
         }
 
-        button:hover { background: #2ea043; }
         button:disabled { opacity: 0.5; }
-
-        .loading { color: var(--accent); font-style: italic; font-size: 12px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="model-name">Qwen3-Coder-Next</div>
-        <div class="specs">
-            80B Sparse MoE<br>
-            3B Activated/Token<br>
-            256k Context Window<br>
-            Non-Thinking Mode
-        </div>
-        <p style="margin-top:20px; font-size: 11px; color: #8b949e;">
-            Optimisé pour les agents de codage, les workflows CLI et le déploiement local.
-        </p>
-        <div id="status" style="margin-top:auto; color: #238636;">● Agent Online</div>
+<header>
+    <h1 style="margin:0; font-size: 1.2rem; color: var(--accent);">Trinity Large Preview</h1>
+    <small style="color: #94a3b8;">Arcee AI | 400B MoE</small>
+</header>
+
+<div id="chat-window">
+    <div class="message bot">
+        <strong>Trinity:</strong> Bonjour ! Je suis prêt. Posez-moi une question complexe ou demandez-moi d'écrire une histoire.
     </div>
+</div>
 
-    <div class="chat-area">
-        <div id="messages">
-            <div class="msg bot-msg"><strong>[SYSTEM]</strong> Initialisation terminée. Prêt pour les tâches de codage complexes et l'utilisation d'outils.</div>
-        </div>
-
-        <div class="input-container">
-            <div class="input-wrapper">
-                <input type="text" id="userInput" placeholder="Décrivez votre tâche de code..." onkeypress="if(event.key==='Enter') sendRequest()">
-                <button id="sendBtn" onclick="sendRequest()">EXECUTE</button>
-            </div>
-            <div id="loader" class="loading" style="display: none; text-align: center;">L'agent analyse et génère le code...</div>
-        </div>
-    </div>
-
-    <script>
-        const API_KEY = "sk-or-v1-593...61c"; // Votre clé API
-        const MODEL_ID = "qwen/qwen-3-coder-next:free"; // Modèle Qwen3
-
-        async function sendRequest() {
-            const inputField = document.getElementById('userInput');
-            const btn = document.getElementById('sendBtn');
-            const loader = document.getElementById('loader');
-            const messageText = inputField.value.trim();
-
-            if (!messageText) return;
-
-            // UI: Ajouter message utilisateur
-            addMessage(messageText, 'user-msg');
-            inputField.value = "";
-            btn.disabled = true;
-            loader.style.display = "block";
-
-            try {
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${API_KEY}`,
-                        "Content-Type": "application/json",
-                        "HTTP-Referer": window.location.href, // Requis par OpenRouter
-                        "X-Title": "Qwen3 Coder Agent"
-                    },
-                    body: JSON.stringify({
-                        "model": MODEL_ID,
-                        "messages": [{ "role": "user", "content": messageText }]
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (data.choices && data.choices[0]) {
-                    const aiResponse = data.choices[0].message.content;
-                    addMessage(aiResponse, 'bot-msg');
-                } else {
-                    addMessage("Erreur : Impossible de récupérer une réponse. Vérifiez votre clé API.", 'bot-msg');
-                }
-
-            } catch (error) {
-                console.error(error);
-                addMessage("Erreur réseau : Vérifiez votre connexion ou les paramètres CORS.", 'bot-msg');
-            } finally {
-                btn.disabled = false;
-                loader.style.display = "none";
-            }
-        }
-
-        function addMessage(text, className) {
-            const container = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.className = `msg ${className}`;
-            div.innerText = text;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-    </script>
-</body>
-</html>
+<div class="input-container">
+    <input type="text" id="userInput" placeholder="Écrivez votre message..." onkeypress="if(event.key==='Enter') startChat()">
+    <button id="sendBtn" onclick="startChat()">RUN</button>
