@@ -178,26 +178,24 @@
 
 </body>
 </html>
-async function handleSend() {
+function handleSend() {
     const message = userInput.value.trim();
     if (message === "") return;
 
     addMessage(message, true);
     userInput.value = "";
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Authorization": "Bearer VOTRE_CLE_API_OPENROUTER",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            "model": "arcee-ai/trinity-large-preview:free",
-            "messages": [{ "role": "user", "content": message }]
-        })
-    });
+    // Simulation d'une petite intelligence locale
+    setTimeout(() => {
+        let response = "Je suis en mode simulation. Connectez l'API pour de vraies réponses.";
+        
+        // Petite astuce pour répondre à 1+1
+        if (message.includes("1+1") || message.includes("1 + 1")) {
+            response = "Ça, je sais faire ! 1 + 1 font 2.";
+        } else if (message.toLowerCase().includes("bonjour")) {
+            response = "Bonjour ! Comment allez-vous ?";
+        }
 
-    const data = await response.json();
-    const botReply = data.choices[0].message.content;
-    addMessage(botReply, false);
+        addMessage(response, false);
+    }, 1000);
 }
