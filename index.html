@@ -3,53 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Emerald AI</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>Mon Guide AI</title>
     <style>
-        :root { --emerald: #10b981; --dark: #064e3b; --bg: #0b0f0d; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); height: 100vh; display: flex; justify-content: center; align-items: center; color: white; }
-        #app { width: 95%; max-width: 900px; height: 85vh; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 25px; display: flex; flex-direction: column; overflow: hidden; }
-        header { padding: 20px 30px; border-bottom: 1px solid rgba(16, 185, 129, 0.1); display: flex; align-items: center; gap: 15px; }
-        .dot { width: 10px; height: 10px; background: var(--emerald); border-radius: 50%; box-shadow: 0 0 10px var(--emerald); }
-        #chat { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 20px; }
-        .msg { max-width: 80%; padding: 12px 20px; border-radius: 15px; line-height: 1.5; }
-        .user { align-self: flex-end; background: var(--emerald); color: var(--dark); font-weight: bold; }
-        .bot { align-self: flex-start; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); }
-        .input-box { padding: 25px; display: flex; gap: 10px; }
-        input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 50px; padding: 12px 20px; color: white; outline: none; }
-        button { background: var(--emerald); border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; color: var(--dark); font-size: 18px; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Bandeau du haut comme sur la photo */
+        header {
+            background-color: #1a5e3a; /* Vert foncé comme l'image */
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Conteneur principal */
+        #chat-container {
+            flex: 1;
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #e6e6e6; /* Gris clair comme l'image */
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* Fenêtre de discussion */
+        #chat-window {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-bottom: 20px;
+        }
+
+        /* Bulles de message */
+        .bubble {
+            padding: 12px 20px;
+            border-radius: 15px;
+            max-width: 70%;
+            font-size: 16px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .bot {
+            background-color: #d1dadd;
+            color: #333;
+            align-self: flex-start;
+            border-left: 5px solid #1a5e3a;
+        }
+
+        .user {
+            background-color: #1a5e3a;
+            color: white;
+            align-self: flex-end;
+        }
+
+        /* Zone d'envoi en bas */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            background-color: transparent;
+            padding-top: 10px;
+            border-top: 1px solid #ccc;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        button {
+            background-color: #26a69a; /* Vert émeraude du bouton Envoyer */
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #1a5e3a;
+        }
     </style>
 </head>
 <body>
-    <div id="app">
-        <header><div class="dot"></div> <h2>NEXUS <span style="color:var(--emerald)">AI</span></h2></header>
-        <div id="chat"><div class="msg bot">Nexus prêt. Posez votre question en émeraude.</div></div>
-        <div class="input-box">
-            <input type="text" id="userInput" placeholder="Écrivez ici...">
-            <button onclick="ask()"><i class="fas fa-arrow-up"></i></button>
-        </div>
+
+<header>Mon Guide AI</header>
+
+<div id="chat-container">
+    <div id="chat-window">
+        <div class="bubble bot">Bonjour ! Je suis prêt. Posez-moi votre question.</div>
     </div>
-    <script>
-        const KEY = "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";
-        const MOD = "arcee-ai/trinity-large-preview:free";
-        async function ask() {
-            const i = document.getElementById('userInput');
-            const c = document.getElementById('chat');
-            if(!i.value.trim()) return;
-            c.innerHTML += `<div class="msg user">${i.value}</div>`;
-            const txt = i.value; i.value = "";
-            try {
-                const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                    method: "POST",
-                    headers: {"Authorization": "Bearer "+KEY, "Content-Type": "application/json"},
-                    body: JSON.stringify({model: MOD, messages: [{role: "user", content: txt}]})
-                });
-                const d = await r.json();
-                c.innerHTML += `<div class="msg bot">${d.choices[0].message.content}</div>`;
-            } catch(e) { c.innerHTML += `<div class="msg bot">Erreur réseau.</div>`; }
-            c.scrollTop = c.scrollHeight;
-        }
-    </script>
-</body>
-</html>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Posez une question...">
+        <button onclick="sendMessage()">Envoyer</button>
+    </div>
+</div>
+
+<script>
+    const API_KEY = "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";
+    const MODEL = "arcee-ai/trinity-large-preview:free";
+
+    async function sendMessage() {
+        const input = document.getElementById('userInput');
+        const window = document.getElementById('chat-window');
+        const text = input.value.trim();
+
+        if (!text) return;
+
+        // Message utilisateur
+        window.innerHTML += `<div class="bubble user">${text}</div>`;
+        input.value = "";
+        window.scrollTop = window.scrollHeight;
+
+        try {
+            const response = await
