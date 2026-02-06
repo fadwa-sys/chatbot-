@@ -3,67 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistant Trinity IA</title>
+    <title>Assistant Académique Premium</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; display: flex; justify-content: center; padding: 20px; }
-        #app { width: 100%; max-width: 600px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 90vh; }
-        header { background: #003366; color: white; padding: 15px; text-align: center; border-radius: 10px 10px 0 0; }
-        #window { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 15px; }
-        .user { background: #0066cc; color: white; align-self: flex-end; }
-        .bot { background: #e9ecef; color: #333; align-self: flex-start; }
-        .input-box { border-top: 1px solid #ddd; padding: 15px; display: flex; gap: 10px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        button { background: #003366; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-    </style>
-</head>
-<body>
-
-<div id="app">
-    <header><h1>🎓 Professeur Trinity</h1></header>
-    <div id="window">
-        <div class="msg bot">Système prêt avec la nouvelle clé. Posez votre question !</div>
-    </div>
-    <div class="input-box">
-        <input type="text" id="userInput" placeholder="Écrivez ici...">
-        <button onclick="ask()">Envoyer</button>
-    </div>
-</div>
-
-<script>
-    // TA NOUVELLE CLÉ FONCTIONNELLE
-    const API_KEY = "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";
-    const MODEL = "arcee-ai/trinity-large-preview:free";
-
-    async function ask() {
-        const input = document.getElementById('userInput');
-        const win = document.getElementById('window');
-        const val = input.value.trim();
-        if(!val) return;
-
-        win.innerHTML += `<div class="msg user">${val}</div>`;
-        input.value = "";
-
-        try {
-            const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer " + API_KEY,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: MODEL,
-                    messages: [{role: "user", content: val}]
-                })
-            });
-            const data = await res.json();
-            const reply = data.choices[0].message.content;
-            win.innerHTML += `<div class="msg bot">${reply}</div>`;
-        } catch (e) {
-            win.innerHTML += `<div class="msg bot">Erreur technique. Vérifiez la console.</div>`;
+        :root {
+            --bg-main: #f9fbff;
+            --glass: rgba(255, 255, 255, 0.95);
+            --primary-gradient: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            --text-dark: #1f1f1f;
+            --shadow: 0 8px 32px rgba(0,0,0,0.08);
         }
-        win.scrollTop = win.scrollHeight;
-    }
-</script>
-</body>
-</html>
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            background-color: var(--bg-main);
+            background-image: radial-gradient(at 0% 0%, rgba(26, 115, 232, 0.05) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(13, 71, 161, 0.05) 0px, transparent 50%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #app-shell {
+            width: 95%;
+            max-width: 1000px;
+            height: 90vh;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .logo-circle { 
+            width: 35px; height: 35px; 
+            background: var(--primary-gradient); 
+            border-radius: 10px; 
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        #chat-flow {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            scroll-behavior: smooth;
+        }
+
+        /* Style des bulles type Claude/Gemini */
+        .message { max-width: 85%; line-height: 1.6; font-size: 16px; position: relative; }
+        
+        .user-msg {
+            align-self: flex-end;
+            background: #eef3ff;
+            color: #0b57d0;
+            padding: 15px 20px;
+            border-radius: 20px 20px 4px 20px;
+        }
+
+        .bot-msg {
+            align-self: flex-start;
+            background: transparent;
+            color: var(--text-dark);
+            padding: 5px 0;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .bot-avatar {
+            min-width: 32px; height: 32px;
+            background: #f1f3f4;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; color: #5f6368;
+        }
+
+        .input-wrapper {
+            padding: 25px 30px;
+            background: white;
+        }
+
+        .search-bar {
+            background: #f0f4f9;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            padding: 5px 10px 5px 25px;
+            transition: 0.3s;
+        }
+
+        .search-bar:focus-within { background: white; box-shadow: 0 0 0 2px #d2e3fc; }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 12px 0;
+            font-size: 16px;
+            color: var(--text-dark);
+        }
+
+        .send-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+
+        .send-btn:hover { transform: scale(1.1); }
+
+        .typing { font-size: 13px; color: #747775; margin
